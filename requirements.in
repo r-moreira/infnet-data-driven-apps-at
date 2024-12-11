@@ -7,3 +7,4 @@ fastapi
 statsbombpy
 streamlit
 uvicorn
+numpy

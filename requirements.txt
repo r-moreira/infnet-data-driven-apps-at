@@ -141,6 +141,7 @@ narwhals==1.17.0
     # via altair
 numpy==1.26.4
     # via
+    #   -r requirements.in
     #   langchain
     #   langchain-community
     #   pandas
