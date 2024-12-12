@@ -88,3 +88,46 @@ class OpenAIClientService:
         except OpenAIError as e:
             OpenAIClientService.logger.error(f"Failed to get chat response: {e}")
             raise OpenAIClientError(f"Failed to get chat response: {e}")
+        
+    @staticmethod
+    def get_match_narration(match_dict: List[Dict[str, Any]], events_dict: List[Dict[str, Any]]) -> str:
+        OpenAIClientService.logger.info("Getting match narration.")
+        
+        api_key = os.getenv("OPENAI_API_KEY")
+        
+        if not api_key:
+            raise OpenAIClientError("OPEN AI API Key is required.")
+        
+        openai.api_key = api_key
+        client: OpenAI = openai
+        
+        system_prompt = f"""
+            You are a sports commentator narrating a live broadcast of a football match between the home team and the away team.
+            
+            Utilize the information below to provide a detailed and engaging narration of the match.
+            
+            Match General Information: {match_dict}
+            
+            Match Events Information: {events_dict}
+            
+            ### Example of narration commentary: 
+                Welcome to the thrilling encounter between the home team and the away team!
+                The home team is in fine form today, dominating possession and creating chances.
+                The away team is not to be underestimated, with their solid defense and swift counter-attacks.
+                Stay tuned for all the action as it unfolds in this exciting match!
+        """
+        
+        try:
+            response = client.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=[
+                    {
+                        "role": "system",
+                        "content": system_prompt
+                    }
+                ]
+            )
+            return response.choices[0].message.content
+        except OpenAIError as e:
+            OpenAIClientService.logger.error(f"Failed to get chat response: {e}")
+            raise OpenAIClientError(f"Failed to get chat response: {e}")

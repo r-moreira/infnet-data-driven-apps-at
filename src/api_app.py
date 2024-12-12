@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 from typing import Dict, Any, List
 from fastapi.responses import JSONResponse
 from fastapi.requests import Request
-from model.openai_model import ChatRequest, ChatResponse, ChatSummary
+from model.openai_model import ChatRequest, ChatResponse, ChatSummary, ChatNarration
 from model.stats_bomb_model import MatchEvents, PlayerProfile
 import requests
 import logging
@@ -60,7 +60,7 @@ def get_match(match_id: int, competition_id: int, season_id: int) -> Dict[str, A
     return StatsBombService.get_match_dict(match_id, competition_id, season_id)
 
 @app.get("/match_summary") 
-def get_match(match_id: int, competition_id: int, season_id: int) -> ChatSummary:
+def get_match_summary(match_id: int, competition_id: int, season_id: int) -> ChatSummary:
     """ 
         Retorna um resumo de uma partida específica.
         
@@ -72,8 +72,8 @@ def get_match(match_id: int, competition_id: int, season_id: int) -> ChatSummary
     
     match_dict = StatsBombService.get_match_dict(match_id, competition_id, season_id)
     
-    # Open AI, por padrão, tem um limite de 200K de tokens no INPUT, não é possível enviar muitos eventos. 
-    # A aplicação suporta passar quantos eventos quiser, porém devido a limitação, foi escolhido passar apenas eventos de chutes.
+    # A aplicação suporta passar quantos eventos quiser,
+    #   porém foi escolhido passar apenas eventos de chutes devido a grande quantidade de tokens
     events_dict = StatsBombService.get_events_dict(
         match_id,
         event_type_list=[
@@ -84,7 +84,7 @@ def get_match(match_id: int, competition_id: int, season_id: int) -> ChatSummary
     return {"summary": summary}
 
 @app.get("/player_profile") 
-def get_player_profile(match_id: int, player_name: str) -> Any:
+def get_player_profile(match_id: int, player_name: str) -> PlayerProfile:
     """
         Retorna o perfil de um jogador específico em uma partida.
         
@@ -95,6 +95,31 @@ def get_player_profile(match_id: int, player_name: str) -> Any:
     
     player_profile: PlayerProfile = StatsBombService.get_player_profile(match_id, player_name)
     return jsonable_encoder(player_profile)
+
+@app.get("/match_narration")
+def get_match_narration(match_id: int, competition_id: int, season_id: int) -> ChatNarration:
+    """
+        Retorna a narração de uma partida específica.
+        
+        Parâmetros:
+        - match_id: int
+        - competition_id: int
+        - season_id: int
+    """
+    
+    match_dict = StatsBombService.get_match_dict(match_id, competition_id, season_id)
+    
+    # A aplicação suporta passar quantos eventos quiser,
+    #   porém foi escolhido passar apenas eventos de chutes devido a grande quantidade de tokens
+    events_dict = StatsBombService.get_events_dict(
+        match_id,
+        event_type_list=[
+            MatchEvents.SHOT.value, 
+        ]
+    )
+    
+    narration = OpenAIClientService.get_match_narration(match_dict, events_dict)
+    return {"narration": narration}
 
 # Rotas adicionais para testes
 

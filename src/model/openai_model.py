@@ -9,3 +9,6 @@ class ChatResponse(BaseModel):
     
 class ChatSummary(BaseModel):
     summary: str
+        
+class ChatNarration(BaseModel):
+    narration: str
