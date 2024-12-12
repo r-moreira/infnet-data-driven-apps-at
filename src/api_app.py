@@ -7,7 +7,7 @@ from typing import Dict, Any, List
 from fastapi.responses import JSONResponse
 from fastapi.requests import Request
 from model.openai_model import ChatRequest, ChatResponse, ChatSummary
-from model.stats_bomb_model import MatchEvents, PlayerEvents, PlayerProfile
+from model.stats_bomb_model import MatchEvents, PlayerProfile
 import requests
 import logging
 
@@ -71,7 +71,15 @@ def get_match(match_id: int, competition_id: int, season_id: int) -> ChatSummary
     """
     
     match_dict = StatsBombService.get_match_dict(match_id, competition_id, season_id)
-    events_dict = StatsBombService.get_events_dict(match_id)
+    
+    # Open AI, por padrão, tem um limite de 200K de tokens no INPUT, não é possível enviar muitos eventos. 
+    # A aplicação suporta passar quantos eventos quiser, porém devido a limitação, foi escolhido passar apenas eventos de chutes.
+    events_dict = StatsBombService.get_events_dict(
+        match_id,
+        event_type_list=[
+            MatchEvents.SHOT.value, 
+        ]
+    )
     summary = OpenAIClientService.get_match_summary(match_dict, events_dict)
     return {"summary": summary}
 

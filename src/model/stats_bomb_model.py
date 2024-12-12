@@ -2,29 +2,6 @@ from enum import Enum
 from typing import List, Dict, Any, Optional
 from pydantic import BaseModel, Field
 
-class PlayerEvents(Enum):
-    PASS = 'Pass'
-    BALL_RECEIPT = 'Ball Receipt*'
-    CARRY = 'Carry'
-    PRESSURE = 'Pressure'
-    FOUL_COMMITTED = 'Foul Committed'
-    FOUL_WON = 'Foul Won'
-    DISPOSSESSED = 'Dispossessed'
-    DUEL = 'Duel'
-    DRIBBLED_PAST = 'Dribbled Past'
-    DRIBBLE = 'Dribble'
-    BLOCK = 'Block'
-    INTERCEPTION = 'Interception'
-    BALL_RECOVERY = 'Ball Recovery'
-    MISCONTROL = 'Miscontrol'
-    SHIELD = 'Shield'
-    SHOT = 'Shot'
-    GOAL_KEEPER = 'Goal Keeper'
-    BAD_BEHAVIOUR = 'Bad Behaviour'
-        
-    def to_value_list() -> List:
-        return [e.value for e in PlayerEvents]
-
 class MatchEvents(Enum):
     STARTING_XI = 'Starting XI'
     HALF_START = 'Half Start'

@@ -56,7 +56,7 @@ class OpenAIClientService:
         openai.api_key = api_key
         client: OpenAI = openai
         
-        system_prompt = """
+        system_prompt = f"""
             You are a sports journalist writing a match summary for a sports website.
             
             Utilize the information below to write a summary of the match between the home team and the away team.
