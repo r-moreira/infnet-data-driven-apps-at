@@ -7,6 +7,7 @@ from typing import Dict, Any, List
 from fastapi.responses import JSONResponse
 from fastapi.requests import Request
 from model.openai_model import ChatRequest, ChatResponse, ChatSummary
+from model.stats_bomb_model import MatchEvents, PlayerEvents, PlayerProfile
 import requests
 import logging
 
@@ -48,18 +49,44 @@ async def global_exception_handler(request: Request, exc: Exception):
 
 @app.get("/match")
 def get_match(match_id: int, competition_id: int, season_id: int) -> Dict[str, Any]:
+    """ 
+        Retorna informações de uma partida específica.
+        
+        Parâmetros:
+        - match_id: int
+        - competition_id: int
+        - season_id: int    
+    """
     return StatsBombService.get_match_dict(match_id, competition_id, season_id)
 
 @app.get("/match_summary") 
 def get_match(match_id: int, competition_id: int, season_id: int) -> ChatSummary:
+    """ 
+        Retorna um resumo de uma partida específica.
+        
+        Parâmetros:
+        - match_id: int
+        - competition_id: int
+        - season_id: int
+    """
+    
     match_dict = StatsBombService.get_match_dict(match_id, competition_id, season_id)
     events_dict = StatsBombService.get_events_dict(match_id)
     summary = OpenAIClientService.get_match_summary(match_dict, events_dict)
     return {"summary": summary}
 
 @app.get("/player_profile") 
-def get_player_profile(player_id: int) -> Any:
-    pass
+def get_player_profile(match_id: int, player_name: str) -> Any:
+    """
+        Retorna o perfil de um jogador específico em uma partida.
+        
+        Parâmetros:
+        - match_id: int
+        - player_name: str
+    """
+    
+    player_profile: PlayerProfile = StatsBombService.get_player_profile(match_id, player_name)
+    return jsonable_encoder(player_profile)
 
 # Rotas adicionais para testes
 
@@ -77,8 +104,12 @@ def get_matches(competition_id: int, season_id: int) -> List[Dict[str, Any]]:
     return StatsBombService.get_matches_dict(competition_id, season_id)
 
 @app.get("/events")
-def get_events(match_id: int, event_type_list: List[str] = Query(None)) -> List[Dict[str, Any]]:  
-    events = StatsBombService.get_events_dict(match_id, event_type_list)
+def get_events(
+        match_id: int,
+        event_type_list: List[str] = Query(None),
+        player_name: str = None
+    ) -> List[Dict[str, Any]]:  
+    events = StatsBombService.get_events_dict(match_id, event_type_list, player_name)
     return jsonable_encoder(events, exclude_none=True)
 
 @app.get("/lineups")
