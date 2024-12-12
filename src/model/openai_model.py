@@ -6,3 +6,6 @@ class ChatRequest(BaseModel):
     
 class ChatResponse(BaseModel):
     message: str
+    
+class ChatSummary(BaseModel):
+    summary: str

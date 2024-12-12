@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 from typing import Dict, Any, List
 from fastapi.responses import JSONResponse
 from fastapi.requests import Request
-from model.openai_model import ChatRequest, ChatResponse
+from model.openai_model import ChatRequest, ChatResponse, ChatSummary
 import requests
 import logging
 
@@ -44,7 +44,24 @@ async def global_exception_handler(request: Request, exc: Exception):
     )
 
 
-# Rotas
+# Rotas principais
+
+@app.get("/match")
+def get_match(match_id: int, competition_id: int, season_id: int) -> Dict[str, Any]:
+    return StatsBombService.get_match_dict(match_id, competition_id, season_id)
+
+@app.get("/match_summary") 
+def get_match(match_id: int, competition_id: int, season_id: int) -> ChatSummary:
+    match_dict = StatsBombService.get_match_dict(match_id, competition_id, season_id)
+    events_dict = StatsBombService.get_events_dict(match_id)
+    summary = OpenAIClientService.get_match_summary(match_dict, events_dict)
+    return {"summary": summary}
+
+@app.get("/player_profile") 
+def get_player_profile(player_id: int) -> Any:
+    pass
+
+# Rotas adicionais para testes
 
 @app.post("/chat")
 def get_chat_response(request: ChatRequest) -> ChatResponse:
@@ -54,10 +71,6 @@ def get_chat_response(request: ChatRequest) -> ChatResponse:
 @app.get("/competitions")
 def get_competitions() -> List[Dict[str, Any]]:
     return StatsBombService.get_competitions_dict()
-
-@app.get("/match")
-def get_match(match_id: int, competition_id: int, season_id: int) -> Dict[str, Any]:
-    return StatsBombService.get_match_dict(match_id, competition_id, season_id)
 
 @app.get("/matches")
 def get_matches(competition_id: int, season_id: int) -> List[Dict[str, Any]]:
