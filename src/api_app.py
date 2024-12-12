@@ -1,49 +1,73 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Query
 from fastapi.encoders import jsonable_encoder
-from service import statsbomb_service
+from service.statsbomb_service import StatsBombService
+from service.openai_client_service import OpenAIClientService
 from dotenv import load_dotenv
 from typing import Dict, Any, List
 from fastapi.responses import JSONResponse
 from fastapi.requests import Request
+from model.openai_model import ChatRequest, ChatResponse
 import requests
+import logging
 
+# Configuração do logger
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.StreamHandler()
+    ]
+)
+
+# Carregar variáveis de ambiente
 load_dotenv()
+
+# Inicialização do app FastAPI
 app = FastAPI()
 
+# Tratamento global de exceções
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
     print(f"Request {request.url } got Internal Server Error: {exc}")
     
-    # Tratamento global da exceção para HTTP 404 da lib StatsBombPy
+    # Exceção para HTTP 404 da lib StatsBombPy
     if isinstance(exc, requests.exceptions.HTTPError) and exc.response.status_code == 404:
         return JSONResponse(
             status_code=404,
             content={"message": "Not Found"},
         )
     
-    # Tratamento global para erros genéricos
+    # Erros genéricos
     return JSONResponse(
         status_code=500,
         content={"message": "Internal Server Error"},
     )
 
+
+# Rotas
+
+@app.post("/chat")
+def get_chat_response(request: ChatRequest) -> ChatResponse:
+    response = OpenAIClientService.get_chat_response(request.message)
+    return {"message": response}
+
 @app.get("/competitions")
 def get_competitions() -> List[Dict[str, Any]]:
-    return statsbomb_service.get_competitions_dict()
+    return StatsBombService.get_competitions_dict()
 
 @app.get("/match")
 def get_match(match_id: int, competition_id: int, season_id: int) -> Dict[str, Any]:
-    return statsbomb_service.get_match_dict(match_id, competition_id, season_id)
+    return StatsBombService.get_match_dict(match_id, competition_id, season_id)
 
 @app.get("/matches")
 def get_matches(competition_id: int, season_id: int) -> List[Dict[str, Any]]:
-    return statsbomb_service.get_matches_dict(competition_id, season_id)
+    return StatsBombService.get_matches_dict(competition_id, season_id)
 
 @app.get("/events")
-def get_events(match_id: int) -> List[Dict[str, Any]]:   
-    events = statsbomb_service.get_events_dict(match_id)
+def get_events(match_id: int, event_type_list: List[str] = Query(None)) -> List[Dict[str, Any]]:  
+    events = StatsBombService.get_events_dict(match_id, event_type_list)
     return jsonable_encoder(events, exclude_none=True)
 
 @app.get("/lineups")
 def get_lineups(match_id: int, team: str) -> List[Dict[str, Any]]:
-    return statsbomb_service.get_lineups_dict(match_id, team)
+    return StatsBombService.get_lineups_dict(match_id, team)
