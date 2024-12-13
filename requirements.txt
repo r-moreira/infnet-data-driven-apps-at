@@ -156,6 +156,7 @@ packaging==24.2
     #   altair
     #   langchain-core
     #   marshmallow
+    #   plotly
     #   streamlit
 pandas==2.2.3
     # via
@@ -165,6 +166,8 @@ pillow==11.0.0
     # via streamlit
 platformdirs==4.3.6
     # via requests-cache
+plotly==5.24.1
+    # via -r requirements.in
 propcache==0.2.1
     # via
     #   aiohttp
@@ -257,6 +260,7 @@ tenacity==9.0.0
     #   langchain
     #   langchain-community
     #   langchain-core
+    #   plotly
     #   streamlit
 tiktoken==0.8.0
     # via langchain-openai

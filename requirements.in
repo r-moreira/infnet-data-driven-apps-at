@@ -9,3 +9,4 @@ streamlit
 uvicorn
 numpy
 streamlit-option-menu
+plotly
