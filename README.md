@@ -49,5 +49,5 @@ PYTHONPATH=./src ./.venv/bin/uvicorn src.api_app:app --reload
 6. Execute a aplicação (Streamlit):
 ```bash
 # No diretório raiz do projeto
-PYTHONPATH=./src ./.venv/bin/uvicorn src.api_app:app --reload
+streamlit run src/streamlit_app.py       
 ```
