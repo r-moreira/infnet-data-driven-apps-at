@@ -1,6 +1,6 @@
 import openai
 from openai import OpenAI, OpenAIError
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Literal
 import logging
 import os
 
@@ -90,7 +90,11 @@ class OpenAIClientService:
             raise OpenAIClientError(f"Failed to get chat response: {e}")
         
     @staticmethod
-    def get_match_narration(match_dict: List[Dict[str, Any]], events_dict: List[Dict[str, Any]]) -> str:
+    def get_match_narration(
+            match_dict: List[Dict[str, Any]],
+            events_dict: List[Dict[str, Any]],
+            style: Literal["Formal", "Humorous", "Technical"] = "Formal"
+        ) -> str:
         OpenAIClientService.logger.info("Getting match narration.")
         
         api_key = os.getenv("OPENAI_API_KEY")
@@ -105,6 +109,8 @@ class OpenAIClientService:
             You are a sports commentator narrating a live broadcast of a football match between the home team and the away team.
             
             Utilize the information below to provide a detailed and engaging narration of the match.
+            
+            You must use a {style.lower()} style of commentary.
             
             Match General Information: {match_dict}
             

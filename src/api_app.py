@@ -3,7 +3,7 @@ from fastapi.encoders import jsonable_encoder
 from service.statsbomb_service import StatsBombService
 from service.openai_client_service import OpenAIClientService
 from dotenv import load_dotenv
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Literal
 from fastapi.responses import JSONResponse
 from fastapi.requests import Request
 from model.openai_model import ChatRequest, ChatResponse, ChatSummary, ChatNarration
@@ -97,7 +97,12 @@ def get_player_profile(match_id: int, player_name: str) -> PlayerProfile:
     return jsonable_encoder(player_profile)
 
 @app.get("/match_narration")
-def get_match_narration(match_id: int, competition_id: int, season_id: int) -> ChatNarration:
+def get_match_narration(
+        match_id: int,
+        competition_id: int,
+        season_id: int,
+        style: Literal["Formal", "Humorous", "Technical"]
+    ) -> ChatNarration:
     """
         Retorna a narração de uma partida específica.
         
@@ -118,7 +123,7 @@ def get_match_narration(match_id: int, competition_id: int, season_id: int) -> C
         ]
     )
     
-    narration = OpenAIClientService.get_match_narration(match_dict, events_dict)
+    narration = OpenAIClientService.get_match_narration(match_dict, events_dict, style)
     return {"narration": narration}
 
 # Rotas adicionais para testes
