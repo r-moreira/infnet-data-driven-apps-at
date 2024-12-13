@@ -16,6 +16,8 @@ Aplicação que implementa ReAct Agents com LangChain e Streamlit, além de um s
 
 ```./requirements.txt``` - Contém as dependências do projeto.
 
+```./images```- Contém os prints das aplicações em funcionamento.
+
 
 ### Como rodar o projeto:
 1. Configurando versão do python:
@@ -41,7 +43,7 @@ pip install -r requirements.txt
 5. Execute a aplicação (Fast API):
 ```bash
 # No diretório raiz do projeto
-./.venv/bin/uvicorn src.api_app:app
+PYTHONPATH=./src ./.venv/bin/uvicorn src.api_app:app --reload 
 ```
 
 6. Execute a aplicação (Streamlit):
