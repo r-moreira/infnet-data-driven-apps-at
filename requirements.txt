@@ -247,6 +247,10 @@ starlette==0.41.3
 statsbombpy==1.14.0
     # via -r requirements.in
 streamlit==1.41.0
+    # via
+    #   -r requirements.in
+    #   streamlit-option-menu
+streamlit-option-menu==0.4.0
     # via -r requirements.in
 tenacity==9.0.0
     # via

@@ -8,3 +8,4 @@ statsbombpy
 streamlit
 uvicorn
 numpy
+streamlit-option-menu
