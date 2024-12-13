@@ -4,10 +4,23 @@ from streamlit_option_menu import option_menu
 from service.statsbomb_service import StatsBombService
 from model.stats_bomb_model import MatchEvents, PlayerProfile
 from typing import Dict, Tuple, List, Any
+from agent.football_agents import load_agent, load_tools
 import pandas as pd
 import logging
 import plotly.express as px
 import plotly.graph_objects as go
+from langchain.schema import AIMessage, HumanMessage
+from langchain.memory import ConversationBufferMemory
+from langchain_community.chat_message_histories import StreamlitChatMessageHistory
+from dotenv import load_dotenv
+
+# Carregar variáveis de ambiente
+load_dotenv()
+
+# Configuração da página
+st.set_page_config(layout="wide",
+                   page_title="Football Match Analysis App",
+                   page_icon="⚽️")
 
 # Configuração do logger
 logging.basicConfig(
@@ -17,6 +30,14 @@ logging.basicConfig(
         logging.StreamHandler()
     ]
 )
+
+# Criação de um histórico de mensagens, utilizando a StreamlitChatMessageHistory
+msgs = StreamlitChatMessageHistory()
+
+if "memory" not in st.session_state:
+    st.session_state["memory"] = ConversationBufferMemory(messages=msgs, memory_key="chat_history", return_messages=True)
+
+memory = st.session_state.memory
 
 # Modal para exibir erros
 @st.dialog("Error")
@@ -44,8 +65,10 @@ def get_cached_lineups(match_id, player_team) -> List[Dict[str, Any]]:
 def get_cached_player_profile(match_id, player) -> PlayerProfile:
     return StatsBombService.get_player_profile(match_id, player["player_name"])
 
-# Sidebar | Opções de seleção de partidas
 def sidebar_option_view() -> Tuple[int | None, Dict | None, Dict | None]:
+    """
+        View para selecionar uma partida
+    """
     with st.sidebar:
         selected_competition = None
         selected_season = None
@@ -85,6 +108,9 @@ def sidebar_option_view() -> Tuple[int | None, Dict | None, Dict | None]:
 
 
 def player_profile_view(match_id, match):
+    """
+        View para exibir o perfil de um jogador
+    """
     player_team = st.selectbox(
             "Choose a Team",
             [match['home_team'], match['away_team']]
@@ -139,6 +165,9 @@ def player_profile_view(match_id, match):
                 st.write(player_profile.model_dump())
 
 def match_events_view(match_id):
+    """
+        View para exibir os eventos de uma partida
+    """
     selected_events = st.multiselect(
             "Match Events",
             MatchEvents.to_value_list()
@@ -151,8 +180,61 @@ def match_events_view(match_id):
         df = df.dropna(axis=1, how='all')
         st.dataframe(df)
 
+def memorize_message():
+    """
+        Callback para memorizar mensagens
+    """
+    user_input = st.session_state["user_input"]
+    st.session_state["memory"].chat_memory.add_message(HumanMessage(content=user_input))
+
 def ai_agent_view():
-    st.write("AI Agent")
+    """
+        View para o agente de IA
+    """
+    st.button("Clear Chat", on_click=lambda: st.session_state["memory"].chat_memory.clear())
+    
+    st.chat_input(key="user_input", on_submit=memorize_message) 
+    
+    if user_input := st.session_state.user_input:
+    
+        chat_history = st.session_state["memory"].chat_memory.messages
+    
+        for msg in chat_history:
+            if isinstance(msg, HumanMessage):
+                with st.chat_message("user"):
+                    st.write(f"{msg.content}")
+            elif isinstance(msg, AIMessage):
+                with st.chat_message("assistant"):
+                    st.write(f"{msg.content}")
+                    
+        with st.spinner("Agent is responding..."):
+            try:
+                agent = load_agent()
+                tools = load_tools()
+                tool_names = [tool.name for tool in tools]
+                tool_descriptions = [tool.description for tool in tools]
+
+                input_data = {
+                    "input": user_input,
+                    "agent_scratchpad": "",
+                    "tool_names": tool_names,
+                    "tools": tool_descriptions,
+                }
+                
+                response = agent.invoke(input=input_data, handle_parsing_errors=True)
+
+                if isinstance(response, dict) and "output" in response:
+                    output = response.get("output")
+                else:
+                    output = "Sorry, I couldn't understand your request. Please try again."
+
+                st.session_state["memory"].chat_memory.add_message(AIMessage(content=output))
+
+                with st.chat_message("assistant"):
+                    st.write(output)
+
+            except Exception as e:
+                st.error(f"Error during agent execution: {str(e)}")
 
 def main_view():
     match_id, competition_season, match = sidebar_option_view()

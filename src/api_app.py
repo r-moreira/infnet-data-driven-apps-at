@@ -26,9 +26,11 @@ load_dotenv()
 # Inicialização do app FastAPI
 app = FastAPI()
 
-# Tratamento global de exceções
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
+    """
+        Tratamento global de exceções
+    """
     print(f"Request {request.url } got Internal Server Error: {exc}")
     
     # Exceção para HTTP 404 da lib StatsBombPy

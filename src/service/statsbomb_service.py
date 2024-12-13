@@ -10,6 +10,9 @@ class StatsBombService:
     
     @staticmethod
     def get_match_dict(match_id: int, competition_id: int, season_id: int) -> Dict[str, Any]:
+        """
+            Obtém informações de uma partida específica.
+        """
         StatsBombService.logger.info(f"Getting match for match_id {match_id}, competition_id {competition_id}, season_id {season_id}")
         
         match = StatsBombService.get_matches_dict(competition_id, season_id)
@@ -20,12 +23,18 @@ class StatsBombService:
 
     @staticmethod
     def get_competitions_dict() -> List[Dict[str, Any]]:
+        """
+            Obtém informações de competições.
+        """
         StatsBombService.logger.info("Getting competitions.")
         
         return sb.competitions().to_dict(orient='records')
         
     @staticmethod
     def get_matches_dict(competition_id: int, season_id: int) -> List[Dict[str, Any]]:
+        """
+            Obtém informações de partidas.
+        """
         StatsBombService.logger.info(f"Getting matches for competition_id {competition_id}, season_id {season_id}")
         
         return sb.matches(competition_id=competition_id, season_id=season_id).to_dict(orient='records')
@@ -36,6 +45,10 @@ class StatsBombService:
             event_type_list: List[str] = None,
             player_name: str = None
         ) -> List[Dict[str, Any]]:    
+        """
+            Obtém eventos de uma partida específica.
+        """
+        
         StatsBombService.logger.info(f"Getting events for match_id {match_id}, event_type_list {event_type_list}, player_name {player_name}")
                 
         events = sb.events(match_id=match_id).to_dict(orient='records')
@@ -61,12 +74,19 @@ class StatsBombService:
 
     @staticmethod
     def get_lineups_dict(match_id: int, team: str) -> List[Dict[str, Any]]:
+        """
+            Obtém escalações de uma partida específica.
+        """
         StatsBombService.logger.info(f"Getting lineups for match_id {match_id}, team {team}")
             
         return sb.lineups(match_id=match_id)[team].to_dict(orient='records')
     
     @staticmethod
     def get_player_profile(match_id, player_name: str) -> PlayerProfile:
+        """
+            Obtém o perfil de um jogador em uma partida específica.
+        """
+        
         StatsBombService.logger.info(f"Getting player profile for player_name {player_name}")
         
         # Pega eventos do jogar em uma partida

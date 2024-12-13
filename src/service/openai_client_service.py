@@ -14,6 +14,10 @@ class OpenAIClientService:
     
     @staticmethod
     def get_chat_response(user_message: str) -> str:
+        """
+            Obtém uma resposta de chat do OpenAI GPT-4.
+        """
+        
         OpenAIClientService.logger.info("Getting chat response.")
         
         api_key = os.getenv("OPENAI_API_KEY")
@@ -46,6 +50,9 @@ class OpenAIClientService:
         
     @staticmethod
     def get_match_summary(match_dict: List[Dict[str, Any]], events_dict: List[Dict[str, Any]]) -> str:
+        """
+            Obtém um resumo de uma partida de futebol, utilizando o OpenAI GPT-4.
+        """
         OpenAIClientService.logger.info("Getting match summary.")
         
         api_key = os.getenv("OPENAI_API_KEY")
@@ -95,6 +102,10 @@ class OpenAIClientService:
             events_dict: List[Dict[str, Any]],
             style: Literal["Formal", "Humorous", "Technical"] = "Formal"
         ) -> str:
+        """
+            Obtém uma narração de uma partida de futebol, utilizando o OpenAI GPT-4.
+        """
+        
         OpenAIClientService.logger.info("Getting match narration.")
         
         api_key = os.getenv("OPENAI_API_KEY")
