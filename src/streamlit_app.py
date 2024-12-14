@@ -187,7 +187,7 @@ def memorize_message():
     user_input = st.session_state["user_input"]
     st.session_state["memory"].chat_memory.add_message(HumanMessage(content=user_input))
 
-def ai_agent_view():
+def ai_agent_view(related_info: Dict[str, Any]):
     """
         View para o agente de IA
     """
@@ -195,46 +195,49 @@ def ai_agent_view():
     
     st.chat_input(key="user_input", on_submit=memorize_message) 
     
-    if user_input := st.session_state.user_input:
-    
-        chat_history = st.session_state["memory"].chat_memory.messages
-    
-        for msg in chat_history:
-            if isinstance(msg, HumanMessage):
-                with st.chat_message("user"):
-                    st.write(f"{msg.content}")
-            elif isinstance(msg, AIMessage):
-                with st.chat_message("assistant"):
-                    st.write(f"{msg.content}")
+    with st.container():
+        if user_input := st.session_state.user_input:
+        
+            chat_history = st.session_state["memory"].chat_memory.messages
+        
+            for msg in chat_history:
+                if isinstance(msg, HumanMessage):
+                    with st.chat_message("user"):
+                        st.write(f"{msg.content}")
+                elif isinstance(msg, AIMessage):
+                    with st.chat_message("assistant"):
+                        st.write(f"{msg.content}")
+                        
+            with st.spinner("Agent is responding..."):
+                try:
+                    agent = load_agent()
+                    tools = load_tools()
+                    tool_names = [tool.name for tool in tools]
+                    tool_descriptions = [tool.description for tool in tools]
+
+                    input_data = {
+                        "input": user_input,
+                        "related_info": related_info,
+                        "agent_scratchpad": "",
+                        "tool_names": tool_names,
+                        "tools": tool_descriptions,
+                    }
                     
-        with st.spinner("Agent is responding..."):
-            try:
-                agent = load_agent()
-                tools = load_tools()
-                tool_names = [tool.name for tool in tools]
-                tool_descriptions = [tool.description for tool in tools]
+                    response = agent.invoke(input=input_data, handle_parsing_errors=True)
 
-                input_data = {
-                    "input": user_input,
-                    "agent_scratchpad": "",
-                    "tool_names": tool_names,
-                    "tools": tool_descriptions,
-                }
-                
-                response = agent.invoke(input=input_data, handle_parsing_errors=True)
+                    if isinstance(response, dict) and "output" in response:
+                        output = response.get("output")
+                    else:
+                        output = "Sorry, I couldn't understand your request. Please try again."
 
-                if isinstance(response, dict) and "output" in response:
-                    output = response.get("output")
-                else:
-                    output = "Sorry, I couldn't understand your request. Please try again."
+                    st.session_state["memory"].chat_memory.add_message(AIMessage(content=output))
 
-                st.session_state["memory"].chat_memory.add_message(AIMessage(content=output))
+                    with st.chat_message("assistant"):
+                        st.write(output)
 
-                with st.chat_message("assistant"):
-                    st.write(output)
-
-            except Exception as e:
-                st.error(f"Error during agent execution: {str(e)}")
+                except Exception as e:
+                    st.error(f"Error during agent execution: {str(e)}")
+                    logging.error(e)
 
 def main_view():
     match_id, competition_season, match = sidebar_option_view()
@@ -260,7 +263,13 @@ def main_view():
         player_profile_view(match_id, match)
     
     elif selected_option == "AI Agent":
-        ai_agent_view()
+        related_info = {
+            "match_info": match,
+            "competition_info": competition_season,
+            "lineup_home_team": get_cached_lineups(match_id, match['home_team']),
+            "lineup_away_team": get_cached_lineups(match_id, match['away_team'])
+        }
+        ai_agent_view(related_info)
         
 try:
     main_view()
