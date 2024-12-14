@@ -1,4 +1,3 @@
-from fastapi.encoders import jsonable_encoder
 import streamlit as st
 from streamlit_option_menu import option_menu
 from service.statsbomb_service import StatsBombService
@@ -7,7 +6,6 @@ from typing import Dict, Tuple, List, Any
 from agent.football_agents import load_agent, load_tools
 import pandas as pd
 import logging
-import plotly.express as px
 import plotly.graph_objects as go
 from langchain.schema import AIMessage, HumanMessage
 from langchain.memory import ConversationBufferMemory
